@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI World Teacher - Sci-Fi Cyber Study Engine</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Orbitron & Rajdhani for Cyberpunk aesthetics -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            title: ['Orbitron', 'sans-serif'],
+            body: ['Rajdhani', 'sans-serif'],
+          },
+          colors: {
+            cyberDark: '#05070f',
+            cyberCard: 'rgba(12, 19, 36, 0.75)',
+            neonCyan: '#00f3ff',
+            neonGreen: '#00ff66',
+            neonPink: '#ff0055',
+            neonPurple: '#b026ff',
+            neonGold: '#ffd700'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background-color: #05070f;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 243, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(176, 38, 255, 0.08) 0%, transparent 40%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      color: #e2e8f0;
+      user-select: none;
+    }
+
+    h1, h2, h3, h4, .font-title {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .cyber-glass {
+      background: rgba(10, 16, 31, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(0, 243, 255, 0.05);
+    }
+
+    .cyber-glass-rose {
+      background: rgba(25, 10, 20, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 0, 85, 0.3);
+      box-shadow: 0 0 25px rgba(255, 0, 85, 0.2);
+    }
+
+    .neon-border-cyan {
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+    }
+
+    .neon-border-pink {
+      box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+    }
+
+    .text-glow-cyan {
+      text-shadow: 0 0 8px rgba(0, 243, 255, 0.7);
+    }
+
+    .text-glow-pink {
+      text-shadow: 0 0 8px rgba(255, 0, 85, 0.8);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #05070f;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #00f3ff;
+      border-radius: 4px;
+    }
+
+    @keyframes scanline {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(1000%); }
+    }
+    .scanline-effect {
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(to bottom, transparent, rgba(0, 243, 255, 0.4), transparent);
+      animation: scanline 8s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.03); opacity: 1; }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 3s infinite ease-in-out;
+    }
+
+    .boss-hp-bar {
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col custom-scrollbar overflow-x-hidden">
+
+  <!-- TOP CYBER HUD HEADER -->
+  <header class="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-cyan-500/30 px-4 py-2.5 shadow-2xl">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+      
+      <!-- Logo & Rank Avatar -->
+      <div class="flex items-center gap-3">
+        <div class="relative cursor-pointer" onclick="switchTab('settings')">
+          <div id="userAvatarIcon" class="w-12 h-12 rounded-xl bg-slate-900 border-2 border-cyan-400 flex items-center justify-center text-2xl shadow-lg neon-border-cyan animate-pulse-slow">
+            🤖
+          </div>
+          <span id="userLevelBadge" class="absolute -bottom-1 -right-1 bg-cyan-400 text-slate-950 font-title text-[10px] font-black px-1.5 py-0.2 rounded border border-slate-950">Lv.1</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-title text-lg sm:text-xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 text-glow-cyan">
+              AI WORLD TEACHER
+            </h1>
+            <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-title px-2 py-0.5 rounded uppercase font-bold" id="hudClassBadge">Class 10 • CBSE</span>
+          </div>
+          
+          <!-- XP Bar -->
+          <div class="flex items-center gap-2 mt-1">
+            <div class="w-32 sm:w-48 bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-700 relative">
+              <div id="xpBarFill" class="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 h-full transition-all duration-500" style="width: 20%;"></div>
+            </div>
+            <span class="text-[10px] font-title text-cyan-300 font-bold" id="xpText">200/1000 XP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resource Stats (Streak, Gold, Gems, Audio) -->
+      <div class="flex items-center gap-2 sm:gap-4 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800">
+        <!-- Rank Title -->
+        <div class="hidden md:flex flex-col text-right pr-2 border-r border-slate-800">
+          <span class="text-[9px] text-slate-400 font-title uppercase">Current Rank</span>
+          <span class="text-xs font-title font-bold text-cyan-300" id="userRankTitle">Cyber Novice</span>
+        </div>
+
+        <!-- Streak -->
+        <div class="flex items-center gap-1.5" title="Active Daily Streak">
+          <i class="fa-solid fa-fire text-amber-500 text-sm animate-pulse"></i>
+          <span class="font-title text-sm font-bold text-amber-400" id="streakVal">5</span>
+          <span class="text-[10px] text-slate-400 hidden sm:inline">Days</span>
+        </div>
+        <div class="w-px h-5 bg-slate-800"></div>
+
+        <!-- Coins -->
+        <div class="flex items-center gap-1.5" title="Gold Credits">
+          <i class="fa-solid fa-coins text-yellow-400 text-sm"></i>
+          <span class="font-title text-sm font-bold text-yellow-300" id="coinsVal">500</span>
+        </div>
+        <div class="w-px h-5 bg-slate-800"></div>
+
+        <!-- Gems -->
+        <div class="flex items-center gap-1.5" title="Cyber Gems">
+          <i class="fa-solid fa-gem text-pink-500 text-sm"></i>
+          <span class="font-title text-sm font-bold text-pink-400" id="gemsVal">40</span>
+        </div>
+        <div class="w-px h-5 bg-slate-800"></div>
+
+        <!-- Sound FX Toggle -->
+        <button onclick="toggleSound()" id="soundBtn" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-cyan-400 transition">
+          <i class="fa-solid fa-volume-high" id="soundIcon"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- LEFT & CENTER HUB: Main Content Area -->
+    <section class="lg:col-span-2 space-y-6">
+
+      <!-- AI Companion Hero Sci-Fi Card -->
+      <div class="relative overflow-hidden rounded-3xl cyber-glass p-6">
+        <div class="scanline-effect"></div>
+        <div class="flex flex-col sm:flex-row items-center gap-5 relative z-10">
+          <div class="relative">
+            <div class="w-24 h-24 rounded-2xl bg-slate-950 border-2 border-cyan-400 flex items-center justify-center text-5xl shadow-2xl neon-border-cyan animate-pulse-slow">
+              🤖
+            </div>
+            <span class="absolute -bottom-2 right-0 bg-emerald-500 text-slate-950 text-[9px] font-title font-black px-2 py-0.5 rounded shadow uppercase">AI ONLINE</span>
+          </div>
+
+          <div class="flex-1 text-center sm:text-left">
+            <div class="inline-flex items-center gap-2 bg-cyan-500/10 text-cyan-300 text-xs font-title font-bold px-3 py-1 rounded-md border border-cyan-500/30 mb-2">
+              <i class="fa-solid fa-microchip"></i> AI World Teacher System Core
+            </div>
+            <h2 class="font-title text-xl sm:text-2xl font-bold text-white tracking-wide" id="companionGreeting">Welcome Back, Scholar Cadet!</h2>
+            <p class="text-slate-300 text-sm mt-1 leading-relaxed" id="companionAdvice">"Conquer today's Daily Cyber Quests to level up your Neural Rank and slay the Board Boss!"</p>
+
+            <div class="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
+              <button onclick="openAIModal()" class="bg-gradient-to-r from-cyan-400 to-blue-600 hover:opacity-90 text-slate-950 font-title font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Ask AI Tutor (+20 XP)
+              </button>
+              <button onclick="switchTab('board')" class="bg-rose-600 hover:bg-rose-500 text-white font-title font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg flex items-center gap-2">
+                <i class="fa-solid fa-shield-cat"></i> Board Boss Raid
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800 gap-1 overflow-x-auto">
+        <button onclick="switchTab('quests')" id="tab-quests" class="tab-btn flex-1 py-2.5 px-3 rounded-xl font-title font-bold text-xs transition flex items-center justify-center gap-2 bg-cyan-500 text-slate-950 shadow-lg">
+          <i class="fa-solid fa-list-check"></i> Daily Quests
+        </button>
+        <button onclick="switchTab('arena')" id="tab-arena" class="tab-btn flex-1 py-2.5 px-3 rounded-xl font-title font-bold text-xs transition flex items-center justify-center gap-2 text-slate-400 hover:text-white">
+          <i class="fa-solid fa-gamepad"></i> Quiz Arena
+        </button>
+        <button onclick="switchTab('board')" id="tab-board" class="tab-btn flex-1 py-2.5 px-3 rounded-xl font-title font-bold text-xs transition flex items-center justify-center gap-2 text-slate-400 hover:text-white">
+          <i class="fa-solid fa-dragon text-rose-500"></i> Board Boss
+        </button>
+        <button onclick="switchTab('rewards')" id="tab-rewards" class="tab-btn flex-1 py-2.5 px-3 rounded-xl font-title font-bold text-xs transition flex items-center justify-center gap-2 text-slate-400 hover:text-white">
+          <i class="fa-solid fa-trophy text-amber-400"></i> Badges
+        </button>
+      </div>
+
+      <!-- TAB 1: DAILY QUESTS HUB -->
+      <div id="content-quests" class="tab-content space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="font-title text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-calendar-check text-cyan-400"></i> Active Daily Objectives
+          </h3>
+          <span class="text-xs text-slate-400 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">Auto-resets Daily</span>
+        </div>
+
+        <div id="questList" class="space-y-3">
+          <!-- Dynamic Quests JS -->
+        </div>
+      </div>
+
+      <!-- TAB 2: QUIZ BATTLE ARENA -->
+      <div id="content-arena" class="tab-content hidden space-y-4">
+        <!-- Subject Selector Grid -->
+        <div id="subjectSelectView" class="space-y-4">
+          <h3 class="font-title text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-network-wired text-cyan-400"></i> Select Neural Subject Sector
+          </h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="subjectGrid">
+            <!-- Dynamic Subjects JS -->
+          </div>
+        </div>
+
+        <!-- Active Quiz Battle View -->
+        <div id="quizArenaView" class="hidden rounded-3xl cyber-glass p-6 space-y-5 relative shadow-2xl">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div>
+              <span class="text-[10px] font-title text-cyan-400 font-bold uppercase tracking-wider" id="quizSubjectLabel">MATH MATRIX</span>
+              <h4 class="font-title text-base font-bold text-white" id="quizTopicLabel">Level Challenge Drill</h4>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-lg text-amber-400 font-title text-xs font-bold flex items-center gap-1">
+                <i class="fa-solid fa-bolt"></i> Combo x<span id="quizCombo">1</span>
+              </div>
+              <button onclick="exitQuiz()" class="text-slate-400 hover:text-rose-400 text-sm font-bold p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex justify-between text-xs text-slate-400 font-title">
+              <span id="questionProgress">Question 1 of 5</span>
+              <span id="questionTimer" class="font-bold text-amber-400"><i class="fa-regular fa-clock"></i> 20s</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-bold text-white leading-relaxed" id="quizQuestionText">Loading Question...</h3>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="quizOptionsContainer">
+            <!-- Options JS -->
+          </div>
+
+          <div id="quizFeedback" class="hidden p-4 rounded-2xl border text-xs font-bold flex items-center gap-3"></div>
+
+          <div class="flex justify-end pt-2">
+            <button id="nextQuestionBtn" onclick="nextQuestion()" disabled class="bg-slate-800 text-slate-500 font-title font-bold px-6 py-2.5 rounded-xl transition flex items-center gap-2 text-xs">
+              Next Task <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: BOARD BOSS EXAM ARENA -->
+      <div id="content-board" class="tab-content hidden space-y-4">
+        <div class="rounded-3xl cyber-glass-rose p-6 space-y-5">
+          <div class="flex items-center justify-between flex-wrap gap-2 border-b border-rose-500/20 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500 flex items-center justify-center text-2xl text-rose-400 shadow-lg">
+                <i class="fa-solid fa-dragon"></i>
+              </div>
+              <div>
+                <h3 class="font-title text-xl font-bold text-white">Board Exam Boss Arena</h3>
+                <p class="text-xs text-slate-300">Class 10 & 12 Board Level High-Yield Boss Raids</p>
+              </div>
+            </div>
+            <span class="bg-rose-500/20 text-rose-300 font-title font-bold px-3 py-1 rounded-full border border-rose-500/30 text-xs" id="boardTargetBadge">
+              🎯 Target: CBSE Board 2026-27
+            </span>
+          </div>
+
+          <!-- Active Boss Raid Interface -->
+          <div class="bg-slate-950/80 border border-rose-500/40 rounded-2xl p-4 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center">
+              <div>
+                <span class="text-[10px] font-title bg-rose-600 text-white font-black px-2 py-0.5 rounded uppercase">FINAL BOSS</span>
+                <h4 class="font-title text-lg font-bold text-white mt-1" id="bossName">ALGEBRA OVERLORD</h4>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-title text-amber-400 font-bold" id="bossReward">+500 XP • +50 Gems</span>
+              </div>
+            </div>
+
+            <!-- Boss Health Bar -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs font-title text-rose-300 font-bold">
+                <span>BOSS HEALTH</span>
+                <span id="bossHpText">1000 / 1000 HP</span>
+              </div>
+              <div class="w-full bg-slate-900 h-4 rounded-full overflow-hidden border border-rose-500/50 p-0.5">
+                <div id="bossHpBar" class="boss-hp-bar bg-gradient-to-r from-rose-600 via-pink-500 to-rose-400 h-full rounded-full" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Answer Class 10/12 Previous Year Board questions correctly to deal critical hits (+200 Damage). 
+            </p>
+
+            <button onclick="startBossRaid()" class="w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:opacity-90 text-white font-title font-bold py-3 rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2 uppercase tracking-wider">
+              <i class="fa-solid fa-burst text-base"></i> Engage Boss Raid (+500 XP)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: REWARDS & BADGES -->
+      <div id="content-rewards" class="tab-content hidden space-y-4">
+        <h3 class="font-title text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-award text-amber-400"></i> Trophy & Neural Badges
+        </h3>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="badgeGrid">
+          <!-- Badges JS -->
+        </div>
+      </div>
+
+      <!-- TAB 5: SETTINGS & GRADE CHANGE -->
+      <div id="content-settings" class="tab-content hidden space-y-4">
+        <div class="cyber-glass rounded-3xl p-6 space-y-4">
+          <h3 class="font-title text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-cyan-400"></i> Grade & Board Customization
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label class="block text-slate-400 font-bold mb-1 font-title">Select Student Class (1 to 12)</label>
+              <select id="classSelect" class="w-full bg-slate-950 border border-cyan-500/30 text-white rounded-xl p-3 font-title font-bold focus:outline-none focus:border-cyan-400">
+                <option value="1">Class 1</option>
+                <option value="2">Class 2</option>
+                <option value="3">Class 3</option>
+                <option value="4">Class 4</option>
+                <option value="5">Class 5</option>
+                <option value="6">Class 6</option>
+                <option value="7">Class 7</option>
+                <option value="8">Class 8</option>
+                <option value="9">Class 9</option>
+                <option value="10" selected>Class 10 (Board Special)</option>
+                <option value="11">Class 11</option>
+                <option value="12">Class 12 (Board Special)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-slate-400 font-bold mb-1 font-title">Educational Board</label>
+              <select id="boardSelect" class="w-full bg-slate-950 border border-cyan-500/30 text-white rounded-xl p-3 font-title font-bold focus:outline-none focus:border-cyan-400">
+                <option value="CBSE" selected>CBSE Board</option>
+                <option value="ICSE">ICSE / CISCE Board</option>
+                <option value="State Board">State Board (UP, MH, MP, BR)</option>
+                <option value="IGCSE/IB">IGCSE / IB Board</option>
+              </select>
+            </div>
+          </div>
+
+          <button onclick="savePreferences()" class="w-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-title font-bold py-3 rounded-xl text-xs transition shadow-lg">
+            Save Neural Profile Settings
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT ASIDE: Leaderboard & Quick AI Stats -->
+    <aside class="space-y-6">
+
+      <!-- AI Tutor Quick Prompt Launcher -->
+      <div class="cyber-glass rounded-3xl p-5 space-y-3">
+        <h3 class="font-title text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i> AI Instant Doubt Solver
+        </h3>
+        <p class="text-xs text-slate-300">Stuck on a concept? Type any topic for instant sci-fi breakdown!</p>
+        
+        <div class="space-y-2">
+          <input type="text" id="quickDoubtInput" placeholder="e.g. Photosynthesis, Trigonometry..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-body">
+          <button onclick="submitQuickDoubt()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-title font-bold py-2 rounded-xl text-xs transition">
+            Solve with AI World Teacher
+          </button>
+        </div>
+      </div>
+
+      <!-- Realtime Leaderboard -->
+      <div class="cyber-glass rounded-3xl p-5 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <h3 class="font-title text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-ranking-star text-amber-400"></i> Cyber Sector Rankings
+          </h3>
+          <span class="text-[9px] font-title bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded">LIVE</span>
+        </div>
+
+        <div class="space-y-2 text-xs" id="leaderboardList">
+          <!-- Dynamic Leaderboard JS -->
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- MODAL: AI WORLD TEACHER FULL TUTOR CHAT -->
+  <div id="aiModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="cyber-glass w-full max-w-xl rounded-3xl p-6 space-y-4 shadow-2xl relative">
+      <button onclick="closeAIModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-cyan-400 text-slate-950 flex items-center justify-center text-2xl font-bold shadow-lg neon-border-cyan">
+          🤖
+        </div>
+        <div>
+          <h3 class="font-title text-lg font-bold text-white">AI World Teacher Tutor</h3>
+          <p class="text-xs text-slate-300">Ask any question for Class <span id="modalClassText">10</span> (<span id="modalBoardText">CBSE</span>)</p>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <textarea id="aiQueryInput" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-body" placeholder="Ask your study question or doubt here..."></textarea>
+      </div>
+
+      <div id="aiAnswerBox" class="hidden bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs text-slate-300 space-y-2 max-h-52 overflow-y-auto custom-scrollbar">
+        <p class="font-title font-bold text-cyan-300 flex items-center gap-1.5"><i class="fa-solid fa-brain"></i> AI Explanation:</p>
+        <p id="aiAnswerText" class="leading-relaxed font-body text-sm"></p>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button onclick="askAICompanion()" id="aiAskBtn" class="w-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-title font-bold py-2.5 rounded-xl text-xs transition">
+          Generate Solution (+20 XP)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // --- LOCAL STORAGE PERSISTENCE STATE ---
+    const STORAGE_KEY = "AI_WORLD_TEACHER_CYBER_DATA";
+
+    const defaultUser = {
+      name: "Cyber Scholar",
+      class: "10",
+      board: "CBSE",
+      xp: 200,
+      xpNext: 1000,
+      level: 1,
+      rankTitle: "Cyber Novice",
+      streak: 5,
+      coins: 500,
+      gems: 40,
+      soundEnabled: true
+    };
+
+    let user = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultUser;
+
+    function saveUserData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    }
+
+    // --- GAME DATA ---
+    const quests = [
+      { id: 1, title: "Neural Math Matrix", desc: "Complete 1 Math Quiz Battle", rewardXP: 150, rewardGems: 10, progress: 0, total: 1, completed: false, icon: "fa-calculator" },
+      { id: 2, title: "Science Spell Craft", desc: "Answer 3 Science questions correctly", rewardXP: 100, rewardGems: 15, progress: 0, total: 3, completed: false, icon: "fa-atom" },
+      { id: 3, title: "Board Boss Attack", desc: "Deal 400+ Damage to the Board Boss", rewardXP: 300, rewardGems: 25, progress: 0, total: 1, completed: false, icon: "fa-shield-cat" }
+    ];
+
+    const subjects = [
+      { id: 'math', name: 'Math Matrix', icon: 'fa-calculator', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30' },
+      { id: 'science', name: 'Quantum Science', icon: 'fa-atom', color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/30' },
+      { id: 'english', name: 'Cyber Linguistics', icon: 'fa-book-atlas', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/30' },
+      { id: 'social', name: 'World History Realm', icon: 'fa-earth-americas', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' }
+    ];
+
+    const quizQuestions = {
+      math: [
+        { q: "If 3x - 7 = 14, what is the value of x?", options: ["x = 7", "x = 5", "x = 9", "x = 6"], correct: 0, exp: "3x = 14 + 7 => 3x = 21 => x = 7!" },
+        { q: "What is the perimeter of a rectangle with length 10cm and width 5cm?", options: ["15 cm", "30 cm", "50 cm", "25 cm"], correct: 1, exp: "Perimeter = 2 * (l + w) = 2 * (10 + 5) = 30 cm." },
+        { q: "Find the hypotenuse of a right-angled triangle with sides 3cm and 4cm.", options: ["6 cm", "5 cm", "7 cm", "8 cm"], correct: 1, exp: "Pythagoras Theorem: 3² + 4² = 9 + 16 = 25. √25 = 5 cm." }
+      ],
+      science: [
+        { q: "What is the speed of light in a vacuum?", options: ["3 × 10⁸ m/s", "1.5 × 10⁸ m/s", "3 × 10⁶ m/s", "3000 m/s"], correct: 0, exp: "Light travels at approximately 300,000 km/s (3 × 10⁸ m/s)." },
+        { q: "Which gas is released during photosynthesis?", options: ["Carbon Dioxide", "Nitrogen", "Oxygen", "Hydrogen"], correct: 2, exp: "Plants consume CO2 and release Oxygen (O2)!" },
+        { q: "What is the pH value of pure water?", options: ["0", "14", "7", "5"], correct: 2, exp: "Pure water is neutral with a pH value of 7." }
+      ]
+    };
+
+    const badges = [
+      { name: "Initiate Explorer", icon: "🛸", desc: "Joined AI World Teacher", unlocked: true },
+      { name: "5-Day Cyber Streak", icon: "🔥", desc: "Maintained active study streak", unlocked: true },
+      { name: "Math Vanguard", icon: "📐", desc: "100% accuracy in Math Battle", unlocked: false },
+      { name: "Board Slayer", icon: "👑", desc: "Defeated Board Boss Overlord", unlocked: false }
+    ];
+
+    const leaderboard = [
+      { name: "Aarav Sharma", xp: 3450, rank: 1, avatar: "🦸‍♂️" },
+      { name: "Ananya Roy", xp: 2980, rank: 2, avatar: "👩‍🔬" },
+      { name: "Cyber Scholar (You)", xp: 200, rank: 3, avatar: "🤖" },
+      { name: "Rohan Verma", xp: 180, rank: 4, avatar: "🥷" }
+    ];
+
+    // --- SOUND EFFECTS SYNTHESIZER ---
+    function playAudioTone(type) {
+      if (!user.soundEnabled) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'success') {
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+          osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.25);
+        } else if (type === 'error') {
+          osc.frequency.setValueAtTime(220, ctx.currentTime);
+          osc.frequency.setValueAtTime(164.81, ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.25);
+        }
+      } catch (e) {}
+    }
+
+    // --- QUIZ & BOSS STATE ---
+    let currentQuiz = null;
+    let currentQIndex = 0;
+    let quizComboMultiplier = 1;
+    let quizTimer = null;
+    let timeLeft = 20;
+    let bossMaxHp = 1000;
+    let bossHp = 1000;
+
+    // --- INITIALIZATION ---
+    window.onload = function() {
+      document.getElementById("classSelect").value = user.class;
+      document.getElementById("boardSelect").value = user.board;
+      renderQuests();
+      renderSubjects();
+      renderBadges();
+      renderLeaderboard();
+      updateHUD();
+    };
+
+    // --- HUD UPDATES ---
+    function updateHUD() {
+      document.getElementById("hudClassBadge").innerText = `Class ${user.class} • ${user.board}`;
+      document.getElementById("boardTargetBadge").innerText = `🎯 Target: ${user.board} Board 2026-27`;
+      document.getElementById("modalClassText").innerText = user.class;
+      document.getElementById("modalBoardText").innerText = user.board;
+      document.getElementById("userLevelBadge").innerText = `Lv.${user.level}`;
+      document.getElementById("userRankTitle").innerText = getRankTitle(user.level);
+      document.getElementById("streakVal").innerText = user.streak;
+      document.getElementById("coinsVal").innerText = user.coins;
+      document.getElementById("gemsVal").innerText = user.gems;
+
+      const xpPercent = Math.min(100, Math.floor((user.xp / user.xpNext) * 100));
+      document.getElementById("xpBarFill").style.width = `${xpPercent}%`;
+      document.getElementById("xpText").innerText = `${user.xp}/${user.xpNext} XP`;
+
+      const userRankItem = leaderboard.find(l => l.name.includes("You"));
+      if (userRankItem) userRankItem.xp = user.xp;
+      renderLeaderboard();
+
+      saveUserData();
+    }
+
+    function getRankTitle(lvl) {
+      if (lvl >= 10) return "Cyber Grandmaster";
+      if (lvl >= 5) return "Neural Master";
+      if (lvl >= 3) return "Cyber Knight";
+      return "Cyber Novice";
+    }
+
+    function addXP(amount) {
+      user.xp += amount;
+      if (user.xp >= user.xpNext) {
+        user.level += 1;
+        user.xp -= user.xpNext;
+        user.xpNext += 500;
+        user.gems += 20;
+        playAudioTone('success');
+        triggerConfetti();
+        showToast(`🎉 LEVEL UP! Reached Level ${user.level}! (+20 Gems)`);
+      }
+      updateHUD();
+    }
+
+    // --- TAB SWITCHING ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-cyan-500', 'text-slate-950', 'shadow-lg');
+        btn.classList.add('text-slate-400');
+      });
+
+      document.getElementById(`content-${tabId}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-cyan-500', 'text-slate-950', 'shadow-lg');
+        activeBtn.classList.remove('text-slate-400');
+      }
+    }
+
+    // --- RENDERING ---
+    function renderQuests() {
+      const container = document.getElementById("questList");
+      container.innerHTML = quests.map(q => `
+        <div class="cyber-glass rounded-2xl p-4 flex items-center justify-between gap-4 transition hover:border-cyan-400/50">
+          <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-xl bg-slate-950 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg">
+              <i class="fa-solid ${q.icon}"></i>
+            </div>
+            <div>
+              <h4 class="font-title font-bold text-white text-xs sm:text-sm">${q.title}</h4>
+              <p class="text-xs text-slate-300 mt-0.5">${q.desc}</p>
+              <div class="w-32 bg-slate-950 h-2 rounded-full mt-2 overflow-hidden border border-slate-800">
+                <div class="bg-cyan-400 h-full" style="width: ${(q.progress/q.total)*100}%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-xs font-title font-bold text-amber-400 block mb-1">+${q.rewardXP} XP</span>
+            <button onclick="claimQuest(${q.id})" ${q.completed ? 'disabled' : ''} class="${q.completed ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-cyan-400 hover:bg-cyan-300 text-slate-950'} font-title font-bold px-3 py-1.5 rounded-xl text-xs transition">
+              ${q.completed ? 'Claimed' : 'Claim'}
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderSubjects() {
+      const container = document.getElementById("subjectGrid");
+      container.innerHTML = subjects.map(s => `
+        <div onclick="startQuiz('${s.id}')" class="${s.bg} border rounded-2xl p-4 text-center cursor-pointer hover:scale-105 transition shadow-lg">
+          <div class="w-12 h-12 rounded-2xl bg-slate-950 mx-auto flex items-center justify-center text-2xl ${s.color} mb-2 shadow-inner">
+            <i class="fa-solid ${s.icon}"></i>
+          </div>
+          <h4 class="font-title font-bold text-white text-xs sm:text-sm">${s.name}</h4>
+          <span class="text-[10px] font-title text-slate-400 block mt-1">Start Drill →</span>
+        </div>
+      `).join('');
+    }
+
+    function renderBadges() {
+      const container = document.getElementById("badgeGrid");
+      container.innerHTML = badges.map(b => `
+        <div class="cyber-glass rounded-2xl p-4 text-center space-y-2 ${b.unlocked ? 'border-amber-400/50' : 'opacity-40'}">
+          <div class="text-3xl">${b.icon}</div>
+          <h4 class="font-title font-bold text-white text-xs">${b.name}</h4>
+          <p class="text-[10px] text-slate-400 leading-tight">${b.desc}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderLeaderboard() {
+      const container = document.getElementById("leaderboardList");
+      container.innerHTML = leaderboard.map(l => `
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <span class="font-title font-bold text-xs w-4 text-slate-400">#${l.rank}</span>
+            <span class="text-base">${l.avatar}</span>
+            <span class="font-title font-bold text-white ${l.name.includes('You') ? 'text-cyan-300' : ''}">${l.name}</span>
+          </div>
+          <span class="font-title font-bold text-amber-400 text-xs">${l.xp} XP</span>
+        </div>
+      `).join('');
+    }
+
+    // --- QUIZ ENGINE ---
+    function startQuiz(subjectId) {
+      currentQuiz = quizQuestions[subjectId] || quizQuestions['math'];
+      currentQIndex = 0;
+      quizComboMultiplier = 1;
+
+      document.getElementById("subjectSelectView").classList.add("hidden");
+      document.getElementById("quizArenaView").classList.remove("hidden");
+      document.getElementById("quizSubjectLabel").innerText = `${subjectId.toUpperCase()} MATRIX`;
+      
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      clearInterval(quizTimer);
+      timeLeft = 20;
+      document.getElementById("questionTimer").innerHTML = `<i class="fa-regular fa-clock"></i> ${timeLeft}s`;
+
+      quizTimer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("questionTimer").innerHTML = `<i class="fa-regular fa-clock"></i> ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(quizTimer);
+          selectOption(-1);
+        }
+      }, 1000);
+
+      const q = currentQuiz[currentQIndex];
+      document.getElementById("questionProgress").innerText = `Task ${currentQIndex + 1} of ${currentQuiz.length}`;
+      document.getElementById("quizQuestionText").innerText = q.q;
+      document.getElementById("quizFeedback").classList.add("hidden");
+
+      const btnNext = document.getElementById("nextQuestionBtn");
+      btnNext.disabled = true;
+      btnNext.className = "bg-slate-800 text-slate-500 font-title font-bold px-6 py-2.5 rounded-xl transition flex items-center gap-2 text-xs";
+
+      const optionsContainer = document.getElementById("quizOptionsContainer");
+      optionsContainer.innerHTML = q.options.map((opt, idx) => `
+        <button onclick="selectOption(${idx})" class="option-btn text-left bg-slate-950 border border-slate-800 hover:border-cyan-400 text-white font-semibold p-3.5 rounded-2xl text-xs transition flex items-center justify-between">
+          <span>${opt}</span>
+          <i class="fa-regular fa-circle text-slate-600 text-sm"></i>
+        </button>
+      `).join('');
+    }
+
+    function selectOption(idx) {
+      clearInterval(quizTimer);
+      const q = currentQuiz[currentQIndex];
+      const feedback = document.getElementById("quizFeedback");
+      const btns = document.querySelectorAll(".option-btn");
+
+      btns.forEach(b => b.disabled = true);
+
+      if (idx === q.correct) {
+        if (idx >= 0) btns[idx].classList.add("border-emerald-500", "bg-emerald-500/10");
+        feedback.className = "p-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-xs font-bold flex items-center gap-3";
+        feedback.innerHTML = `<i class="fa-solid fa-circle-check text-lg"></i> <div><strong>Target Hit!</strong> ${q.exp} (+50 XP)</div>`;
+
+        playAudioTone('success');
+        quizComboMultiplier++;
+        addXP(50 * quizComboMultiplier);
+
+        quests[0].progress = Math.min(quests[0].total, quests[0].progress + 1);
+        renderQuests();
+      } else {
+        if (idx >= 0) btns[idx].classList.add("border-rose-500", "bg-rose-500/10");
+        if (q.correct >= 0) btns[q.correct].classList.add("border-emerald-500", "bg-emerald-500/10");
+
+        playAudioTone('error');
+        feedback.className = "p-4 rounded-2xl border border-rose-500/40 bg-rose-500/10 text-rose-300 text-xs font-bold flex items-center gap-3";
+        feedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-lg"></i> <div><strong>Shield Blocked!</strong> Correct answer was Option ${q.correct + 1}.</div>`;
+        quizComboMultiplier = 1;
+      }
+
+      document.getElementById("quizCombo").innerText = quizComboMultiplier;
+      feedback.classList.remove("hidden");
+
+      const btnNext = document.getElementById("nextQuestionBtn");
+      btnNext.disabled = false;
+      btnNext.className = "bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-title font-bold px-6 py-2.5 rounded-xl transition flex items-center gap-2 text-xs shadow-lg";
+    }
+
+    function nextQuestion() {
+      currentQIndex++;
+      if (currentQIndex < currentQuiz.length) {
+        loadQuestion();
+      } else {
+        exitQuiz();
+        triggerConfetti();
+        showToast("🏆 Cyber Drill Victory! +100 XP Bonus!");
+        addXP(100);
+      }
+    }
+
+    function exitQuiz() {
+      clearInterval(quizTimer);
+      document.getElementById("quizArenaView").classList.add("hidden");
+      document.getElementById("subjectSelectView").classList.remove("hidden");
+    }
+
+    // --- BOARD BOSS RAID ENGINE ---
+    function startBossRaid() {
+      const damage = 400;
+      bossHp = Math.max(0, bossHp - damage);
+      const hpPercent = (bossHp / bossMaxHp) * 100;
+
+      document.getElementById("bossHpBar").style.width = `${hpPercent}%`;
+      document.getElementById("bossHpText").innerText = `${bossHp} / ${bossMaxHp} HP`;
+
+      playAudioTone('success');
+      addXP(150);
+
+      quests[2].progress = Math.min(quests[2].total, quests[2].progress + 1);
+      renderQuests();
+
+      if (bossHp <= 0) {
+        triggerConfetti();
+        showToast("👑 BOARD BOSS OVERLORD DEFEATED! (+500 XP & +50 Gems)");
+        addXP(500);
+        user.gems += 50;
+        bossHp = bossMaxHp; // Reset
+        document.getElementById("bossHpBar").style.width = `100%`;
+        document.getElementById("bossHpText").innerText = `${bossHp} / ${bossMaxHp} HP`;
+      } else {
+        showToast(`💥 CRITICAL HIT! Dealt ${damage} damage to Boss!`);
+      }
+
+      updateHUD();
+    }
+
+    // --- CLAIM QUEST REWARDS ---
+    function claimQuest(id) {
+      const q = quests.find(item => item.id === id);
+      if (q && !q.completed) {
+        q.completed = true;
+        addXP(q.rewardXP);
+        user.gems += q.rewardGems;
+        playAudioTone('success');
+        triggerConfetti();
+        showToast(`✨ Quest Completed! +${q.rewardXP} XP & +${q.rewardGems} Gems!`);
+        renderQuests();
+        updateHUD();
+      }
+    }
+
+    // --- PREFERENCES ---
+    function savePreferences() {
+      user.class = document.getElementById("classSelect").value;
+      user.board = document.getElementById("boardSelect").value;
+      updateHUD();
+      showToast("⚙️ Profile & Grade Settings Updated!");
+    }
+
+    // --- AI COMPANION CHAT ENGINE ---
+    function openAIModal() {
+      document.getElementById("aiModal").classList.remove("hidden");
+    }
+
+    function closeAIModal() {
+      document.getElementById("aiModal").classList.add("hidden");
+    }
+
+    function submitQuickDoubt() {
+      const input = document.getElementById("quickDoubtInput").value;
+      if (!input.trim()) return;
+      document.getElementById("aiQueryInput").value = input;
+      document.getElementById("quickDoubtInput").value = "";
+      openAIModal();
+      askAICompanion();
+    }
+
+    async function askAICompanion() {
+      const query = document.getElementById("aiQueryInput").value.trim();
+      if (!query) return;
+
+      const answerBox = document.getElementById("aiAnswerBox");
+      const answerText = document.getElementById("aiAnswerText");
+      const askBtn = document.getElementById("aiAskBtn");
+
+      answerBox.classList.remove("hidden");
+      answerText.innerText = "⚡ Neural Core analyzing question...";
+      askBtn.disabled = true;
+
+      try {
+        const systemPrompt = `You are 'AI World Teacher', an encouraging tutor for Class ${user.class} (${user.board} board). Explain concepts using engaging sci-fi/gaming analogies. Concise bullet points.`;
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        const payload = {
+          contents: [{ parts: [{ text: query }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] }
+        };
+
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Neural Matrix response generated!";
+
+        answerText.innerText = responseText;
+        playAudioTone('success');
+        addXP(20);
+      } catch (err) {
+        answerText.innerText = "• Concept Matrix: Think of this as charging up your neural energy core!\n• Key Formula: Input + Focus = High Mastery Level!\n• Practice 2 more questions to solidify this concept.";
+        addXP(20);
+      } finally {
+        askBtn.disabled = false;
+      }
+    }
+
+    // --- UTILS ---
+    function toggleSound() {
+      user.soundEnabled = !user.soundEnabled;
+      document.getElementById("soundIcon").className = user.soundEnabled ? "fa-solid fa-volume-high" : "fa-solid fa-volume-xmark";
+      showToast(user.soundEnabled ? "🔊 Sound FX Activated" : "🔇 Sound Muted");
+      saveUserData();
+    }
+
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.createElement("div");
+      toast.className = "fixed bottom-6 right-6 cyber-glass text-cyan-300 font-title font-bold px-4 py-3 rounded-2xl shadow-2xl z-50 text-xs flex items-center gap-2 border border-cyan-400 animate-pulse-slow";
+      toast.innerHTML = `<i class="fa-solid fa-sparkles text-amber-400"></i> ${msg}`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    }
+  </script>
+</body>
+</html>
